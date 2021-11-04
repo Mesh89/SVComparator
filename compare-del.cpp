@@ -39,8 +39,8 @@ int main(int argc, char* argv[]) {
 	std::vector<sv_t> called_svs = read_sv_list(argv[2]);
 
 	auto is_del_func = [](const sv_t& sv) {return sv.type != "DEL";};
-	benchmark_svs.erase(std::remove_if(benchmark_svs.begin(), benchmark_svs.end(), is_del_func));
-	called_svs.erase(std::remove_if(called_svs.begin(), called_svs.end(), is_del_func));
+	benchmark_svs.erase(std::remove_if(benchmark_svs.begin(), benchmark_svs.end(), is_del_func), benchmark_svs.end());
+	called_svs.erase(std::remove_if(called_svs.begin(), called_svs.end(), is_del_func), called_svs.end());
 
     std::ifstream rep_f(argv[3]);
     bool report = false, print_fp = false;
@@ -116,7 +116,7 @@ int main(int argc, char* argv[]) {
         for (sv_t& csv : called_svs_by_chr[bsv.bp1.chr]) {
         	bool good_overlap = get_overlap(bsv,csv) >= std::min(bsv.size(), csv.size()) * overlap_frac;
             if (dist(bsv, csv) <= maxdist && good_overlap) {
-                std::cout << bsv.id << " " << csv.id << std::endl;
+                if (!report) std::cout << bsv.id << " " << csv.id << std::endl;
                 b_tps.insert(bsv.id);
                 c_tps.insert(csv.id);
                 matched = true;
@@ -135,7 +135,7 @@ int main(int argc, char* argv[]) {
                     if (cseq.length() < 50000 && bseq.length() < 50000) {
                         aligner.Align(bseq.data(), cseq.data(), cseq.length(), filter, &alignment);
                         if (alignment.sw_score >= std::min(bseq.length(), cseq.length())) {
-                            std::cout << bsv.id << " " << csv.id << " REP" << std::endl;
+                        	if (!report) std::cout << bsv.id << " " << csv.id << " REP" << std::endl;
                             b_tps.insert(bsv.id);
 							c_tps.insert(csv.id);
                             matched = true;
@@ -146,7 +146,7 @@ int main(int argc, char* argv[]) {
         }
 
         if (!matched) {
-            std::cout << bsv.id << " NONE" << std::endl;
+        	if (!report) std::cout << bsv.id << " NONE" << std::endl;
         }
     }
 
