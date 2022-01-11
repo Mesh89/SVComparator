@@ -31,7 +31,8 @@ int get_sv_end(bcf_hdr_t* hdr, bcf1_t* sv) {
         return sv->pos + abs(svlen);
     }
 
-    throw std::runtime_error("SV " + std::string(sv->d.id) + " has no END or SVLEN annotation.");
+    std::cerr << "Warning: SV (ID=" << sv->d.id << ") has no END or SVLEN annotation. Assuming END == POS." << std::endl;
+    return sv->pos;
 }
 
 std::string get_ins_seq(bcf_hdr_t* hdr, bcf1_t* sv) {

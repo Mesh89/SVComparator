@@ -68,9 +68,10 @@ bool check_ins_seq(sv_t& bsv, sv_t& csv) {
     aligner.Align(bsv.seq.data(), cseq.data(), cseq.length(), filter, &alignment);
     if (alignment.sw_score >= std::min(bsv.seq.length(), cseq.length())) return true;
 
-    cseq = rev_comp(cseq);
-    aligner.Align(bsv.seq.data(), cseq.data(), cseq.length(), filter, &alignment);
-    return alignment.sw_score >= std::min(bsv.seq.length(), cseq.length());
+//    cseq = rev_comp(cseq);
+//    aligner.Align(bsv.seq.data(), cseq.data(), cseq.length(), filter, &alignment);
+//    return alignment.sw_score >= std::min(bsv.seq.length(), cseq.length());
+    return false;
 }
 
 int main(int argc, char* argv[]) {
@@ -86,8 +87,8 @@ int main(int argc, char* argv[]) {
 	std::vector<sv_t> called_svs = read_sv_list(argv[2]);
 
 	auto is_ins_func = [](const sv_t& sv) {return sv.type != "INS" && sv.type != "DUP";};
-	benchmark_svs.erase(std::remove_if(benchmark_svs.begin(), benchmark_svs.end(), is_ins_func));
-	called_svs.erase(std::remove_if(called_svs.begin(), called_svs.end(), is_ins_func));
+	benchmark_svs.erase(std::remove_if(benchmark_svs.begin(), benchmark_svs.end(), is_ins_func), benchmark_svs.end());
+	called_svs.erase(std::remove_if(called_svs.begin(), called_svs.end(), is_ins_func), called_svs.end());
 
     std::ifstream rep_f(argv[3]);
 	maxdist = std::stoi(argv[5]);
@@ -159,7 +160,7 @@ int main(int argc, char* argv[]) {
         for (int j = 0; j < called_svs_by_chr[bsv.bp1.chr].size(); j++) {
             sv_t csv = called_svs_by_chr[bsv.bp1.chr][j];
             if (dist(bsv, csv) <= maxdist && check_ins_seq(bsv, csv)) {
-                std::cout << bsv.id << " " << csv.id << std::endl;
+                if (!report) std::cout << bsv.id << " " << csv.id << std::endl;
                 b_tps.insert(bsv.id);
                 c_tps.insert(csv.id);
                 matched = true;
@@ -167,7 +168,7 @@ int main(int argc, char* argv[]) {
 
             for (repeat_t& rep : reps_containing_bsv) {
                 if (rep.intersects(csv) && check_ins_seq(bsv, csv)) {
-                    std::cout << bsv.id << " " << csv.id << " REP" << std::endl;
+                	if (!report) std::cout << bsv.id << " " << csv.id << " REP" << std::endl;
                     b_tps.insert(bsv.id);
                     c_tps.insert(csv.id);
                     matched = true;
@@ -176,7 +177,7 @@ int main(int argc, char* argv[]) {
         }
 
         if (!matched) {
-            std::cout << bsv.id << " NONE" << std::endl;
+        	if (!report) std::cout << bsv.id << " NONE" << std::endl;
         }
 	}
 
